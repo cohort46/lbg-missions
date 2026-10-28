@@ -1,24 +1,22 @@
-              - step:
-                  type: Run
-                  name: produce coverage report
-                  identifier: produce_coverage_report
-                  spec:
-                    connectorRef: project_level_dockerhub_connector
-                    image: python:3-alpine
-                    shell: Sh
-                    command: |-
-                      # Install coverage and other
-                      # dependencies required by the code repo.
+        - run:
+            script: |-
+              # Install coverage and other
+              # dependencies required by the code repo.
 
-                      python3 -m venv .venv
-                      . .venv/bin/activate
+              python3 -m venv .venv
+              . .venv/bin/activate
 
-                      python3 -m pip install -r requirements.txt
-                      python3 -m pip install coverage
+              python3 -m pip install -r requirements.txt
+              python3 -m pip install coverage
 
 
-                      # Run coverage commands to generate a report
-                      # and then convert the report to XML.
-                      # This method ensures that SonarQube can ingest the resulting report.
-                      coverage run -m pytest *test*
-                      coverage xml
+              # Run coverage commands to generate a report
+              # and then convert the report to XML.
+              # This method ensures that SonarQube can ingest the resulting report.
+              coverage run -m pytest *test*
+              coverage xml
+            container:
+              image: python:3-alpine
+              connector: project_level_dockerhub_connector
+          name: produce coverage report
+          id: produce_coverage_report
