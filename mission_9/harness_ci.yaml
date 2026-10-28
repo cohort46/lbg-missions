@@ -1,0 +1,41 @@
+pipeline:
+  stages:
+    - steps:
+        - run:
+            script: |
+              python3 -m pip install -r requirements.txt
+              pytest --junitxml=out_report.xml
+            container:
+              image: python:3-alpine
+              connector: project_level_dockerhub_connector
+          name: run python tests
+          id: run_python_tests
+        - name: sonarqube scan
+          run:
+            script: |
+              python3 -m pip install pysonar
+              pysonar \
+              --sonar-host-url=$SONAR_URL \
+              --sonar-token=$SONAR_TOKEN \
+              --sonar-project-key=<YOUR_NAME>-python-webapp
+            env:
+              SONAR_URL: <+secrets.getValue("sonarqube_url")>
+              SONAR_TOKEN: <+secrets.getValue("sonarqube_token")>
+            container:
+              image: python:3-alpine
+              connector: project_level_dockerhub_connector
+              resources:
+                limits:
+                  cpu: 400m
+                  memory: 2Gi
+          id: sonarqube_scan
+      name: validate code
+      id: validate_code
+      runtime: cloud
+  clone:
+    ref:
+      type: branch
+      name: main
+    enabled: true
+    repo: cohort46/python-webapp
+    connector: project_level_github_connector
